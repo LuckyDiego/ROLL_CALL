@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天选点名系统-至尊版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        body {
+            background-image: url('class.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: '楷体', 'STKaiti', serif;
+            overflow: hidden;
+        }
+        
+        .btn {
+            position: absolute;
+            top: 62%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #ffd700, #ffcc00);
+            color: #8b0000;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.3rem;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        
+        .btn:hover {
+            transform: translate(-50%, -52%);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .btn:active {
+            transform: translate(-50%, -48%);
+        }
+        
+        .result {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 6rem;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 
+                0 0 10px #ffd700,
+                0 0 20px #ffd700,
+                0 0 30px #ffd700,
+                3px 3px 0 #ff0000,
+                -3px -3px 0 #ff0000,
+                3px -3px 0 #ff0000,
+                -3px 3px 0 #ff0000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
+            z-index: 5;
+        }
+        
+        .result.show {
+            opacity: 1;
+        }
+        
+        .loading-text {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.2rem;
+            color: #a8e6ff;
+            text-shadow: 
+                2px 2px 0 #005588,
+                -2px -2px 0 #005588,
+                2px -2px 0 #005588,
+                -2px 2px 0 #005588;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            text-align: center;
+            white-space: nowrap;
+            z-index: 5;
+        }
+        
+        .loading-text.show {
+            opacity: 1;
+        }
+        
+        .creator {
+            position: fixed;
+            bottom: 8px;
+            right: 12px;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.3);
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        @keyframes glow {
+            0% { text-shadow: 
+                0 0 10px #ffd700,
+                0 0 20px #ffd700,
+                0 0 30px #ffd700,
+                3px 3px 0 #ff0000,
+                -3px -3px 0 #ff0000,
+                3px -3px 0 #ff0000,
+                -3px 3px 0 #ff0000; }
+            50% { text-shadow: 
+                0 0 15px #ffd700,
+                0 0 30px #ffd700,
+                0 0 45px #ffd700,
+                4px 4px 0 #ff0000,
+                -4px -4px 0 #ff0000,
+                4px -4px 0 #ff0000,
+                -4px 4px 0 #ff0000; }
+            100% { text-shadow: 
+                0 0 10px #ffd700,
+                0 0 20px #ffd700,
+                0 0 30px #ffd700,
+                3px 3px 0 #ff0000,
+                -3px -3px 0 #ff0000,
+                3px -3px 0 #ff0000,
+                -3px 3px 0 #ff0000; }
+        }
+        
+        .glow {
+            animation: glow 2s ease infinite;
+        }
+
+        /* 新增框样式 */
+        .info-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80vw;
+            height: 80vh;
+            background: linear-gradient(45deg, #1a1a1a 0%, #000000 100%);
+            border: 3px solid #ffd700;
+            border-radius: 20px;
+            padding: 30px;
+            color: #ffffff;
+            z-index: 1000;
+            overflow-y: auto;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+        }
+
+        .info-modal::-webkit-scrollbar {
+            width: 12px;
+            background: #000000;
+        }
+
+        .info-modal::-webkit-scrollbar-thumb {
+            background: linear-gradient(#ffd700, #ff9900);
+            border-radius: 6px;
+        }
+
+        .info-header {
+            font-size: 2.5rem;
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px #ffd700;
+        }
+
+        .info-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: rgba(255, 215, 0, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .info-section h2 {
+            color: #ffd700;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #ffd700;
+            padding-bottom: 10px;
+        }
+
+        .info-section h3 {
+            color: #ff9900;
+            font-size: 1.4rem;
+            margin: 20px 0 10px;
+        }
+
+        .info-section p {
+            line-height: 1.8;
+            margin-bottom: 15px;
+            text-indent: 2em;
+        }
+
+        .info-section ul {
+            padding-left: 30px;
+            margin: 15px 0;
+        }
+
+        .info-section li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .close-btn {
+            position: fixed !important;
+            top: 30px !important;
+            right: 30px !important;
+            background: #ff0000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            z-index: 9999;
+        }
+
+        .close-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px #ff0000;
+        }
+
+        .info-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #ffd700, #ff9900);
+            color: #8b0000;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .info-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 新增后台管理面板样式 */
+        .admin-panel {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90vw;
+            height: 85vh;
+            background: linear-gradient(45deg, #0a0a0a 0%, #000000 100%);
+            border: 4px solid #ffd700;
+            border-radius: 25px;
+            padding: 30px;
+            color: #ffffff;
+            z-index: 1000;
+            overflow-y: auto;
+            box-shadow: 0 0 60px rgba(255, 215, 0, 0.7);
+        }
+
+        .admin-panel::-webkit-scrollbar {
+            width: 14px;
+            background: #000000;
+        }
+
+        .admin-panel::-webkit-scrollbar-thumb {
+            background: linear-gradient(#ffd700, #ff9900);
+            border-radius: 7px;
+        }
+
+        .admin-header {
+            font-size: 2.8rem;
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 0 0 15px #ffd700;
+            border-bottom: 3px solid #ffd700;
+            padding-bottom: 15px;
+        }
+
+        .admin-section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: rgba(255, 215, 0, 0.08);
+            border-radius: 18px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .admin-section h2 {
+            color: #ffd700;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ffd700;
+            padding-bottom: 10px;
+        }
+
+        .admin-section h3 {
+            color: #ff9900;
+            font-size: 1.6rem;
+            margin: 25px 0 15px;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 1.1rem;
+        }
+
+        .admin-table th {
+            background: linear-gradient(to right, #ffd700, #ff9900);
+            color: #8b0000;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .admin-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .admin-table tr:nth-child(even) {
+            background: rgba(255, 215, 0, 0.05);
+        }
+
+        .admin-table tr:hover {
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .admin-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255, 215, 0, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .control-group h4 {
+            color: #ffd700;
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.5);
+            padding-bottom: 8px;
+        }
+
+        .control-item {
+            margin-bottom: 15px;
+        }
+
+        .control-item label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ffcc00;
+        }
+
+        .control-item input[type="range"],
+        .control-item input[type="number"],
+        .control-item select {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #ffd700;
+            border-radius: 5px;
+            color: white;
+        }
+
+        .control-item input[type="range"] {
+            -webkit-appearance: none;
+            height: 8px;
+            background: linear-gradient(to right, #ffd700, #ff9900);
+            border-radius: 4px;
+        }
+
+        .control-item input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #ff0000;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .admin-btn {
+            background: linear-gradient(135deg, #ffd700, #ff9900);
+            color: #8b0000;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+        }
+
+        .admin-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .admin-btn:active {
+            transform: translateY(0);
+        }
+
+        .admin-btn.danger {
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            color: white;
+        }
+
+        .admin-btn.success {
+            background: linear-gradient(135deg, #00aa00, #008800);
+            color: white;
+        }
+
+        .stats-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .stat-card {
+            flex: 1;
+            min-width: 200px;
+            background: rgba(255, 215, 0, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            color: #ffcc00;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        #adminBtn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        #adminBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .password-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            background: linear-gradient(45deg, #1a1a1a 0%, #000000 100%);
+            border: 3px solid #ffd700;
+            border-radius: 20px;
+            padding: 30px;
+            color: #ffffff;
+            z-index: 1100;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+        }
+
+        .password-modal h2 {
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #ffd700;
+            border-radius: 5px;
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .password-buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .password-buttons button {
+            flex: 1;
+            margin: 0 10px;
+        }
+
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .history-item:nth-child(odd) {
+            background: rgba(255, 215, 0, 0.05);
+        }
+
+        .history-time {
+            color: #ffcc00;
+            font-size: 0.9rem;
+        }
+
+        .history-name {
+            font-size: 1.1rem;
+            color: #ffd700;
+        }
+
+        /* 新增皇家特效 */
+        @keyframes royal-glow {
+            0% { filter: drop-shadow(0 0 5px #ffd700) hue-rotate(0deg); }
+            50% { filter: drop-shadow(0 0 30px #ff6b00) hue-rotate(180deg); }
+            100% { filter: drop-shadow(0 0 5px #ffd700) hue-rotate(360deg); }
+        }
+        
+        .royal-effect {
+            animation: royal-glow 3s ease infinite;
+            background: linear-gradient(45deg, 
+                rgba(255,215,0,0.1) 0%, 
+                rgba(255,107,0,0.2) 50%, 
+                rgba(255,215,0,0.1) 100%);
+            backdrop-filter: blur(5px);
+        }
+
+        /* 新增背景样式 */
+        .gold-bg {
+            background-image: linear-gradient(45deg, 
+                #fff3d4 0%, 
+                #ffecb3 50%, 
+                #fff3d4 100%) !important;
+            background-size: 200% 200%;
+            animation: gradientBG 15s ease infinite;
+            background-image: none;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 新增加载文本编辑区 */
+        .load-text-editor {
+            max-height: 150px;
+            overflow-y: auto;
+            border: 2px solid rgba(255,215,0,0.3);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        /* 充值界面样式 */
+        .recharge-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        /* 新增固定关闭按钮样式 */
+        .admin-panel .close-admin-btn {
+            position: fixed !important;
+            top: 30px !important;
+            right: 30px !important;
+            padding: 12px 25px !important;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <button id="randomBtn" class="btn">开始点名</button>
+    <button id="adminBtn" class="admin-btn">天机阁</button>
+    
+    <div id="result" class="result"></div>
+    <div id="loadingText" class="loading-text"></div>
+    
+    <div class="creator">
+        制作者：江南鸡蛋质检员<br>
+        <span style="font-size:0.6em;color:rgba(255,255,255,0.2)">破解者将受宫刑天罚</span>
+    </div>
+
+    <!-- 新增后台管理面板 -->
+    <div id="adminPanel" class="admin-panel">
+        <button class="admin-btn danger close-admin-btn" onclick="closeAdminPanel()">退出天机阁</button>
+        <div class="admin-header">✨天机阁-天道管理系统✨</div>
+        
+        <div class="admin-section">
+            <h2>⚡ 天道统计总览</h2>
+            <div class="stats-container">
+                <div class="stat-card">
+                    <h4>总点名次数</h4>
+                    <div class="value" id="totalCallsStat">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>系统运行时长</h4>
+                    <div class="value" id="uptimeStat">0天0时0分</div>
+                </div>
+                <div class="stat-card">
+                    <h4>最近点名</h4>
+                    <div class="value" id="lastCalledStat">无</div>
+                </div>
+                <div class="stat-card">
+                    <h4>点名频率</h4>
+                    <div class="value" id="callRateStat">0次/分</div>
+                </div>
+                <!-- 添加新的统计卡片 -->
+                <div class="stat-card">
+                    <h4>天道保护状态</h4>
+                    <div class="value" id="cloneStatus">加载中...</div>
+                    <div class="value" id="uncoveredCount" style="font-size:1rem"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="admin-section">
+            <h2>📜 众生名录</h2>
+            <div style="overflow-x: auto;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>学号</th>
+                            <th>姓名</th>
+                            <th>被点次数</th>
+                            <th>分身数量</th>
+                            <th>上次被点</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTable">
+                        <!-- 学生数据将通过JavaScript动态填充 -->
+                    </tbody>
+                </table>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="admin-btn" onclick="resetAllCounts()">重置所有计数</button>
+                <button class="admin-btn success" onclick="exportData()">导出天机</button>
+                <button class="admin-btn" onclick="importData()">导入天机</button>
+            </div>
+        </div>
+        
+        <div class="admin-section">
+            <h2>⚙️ 天道参数设置</h2>
+            <div class="admin-controls">
+                <div class="control-group">
+                    <h4>⚡ 点名动画设置</h4>
+                    <div class="control-item">
+                        <label for="loadingTime">加载时间(毫秒)</label>
+                        <input type="range" id="loadingTime" min="500" max="3000" step="100" value="1400">
+                        <input type="number" id="loadingTimeValue" min="500" max="3000" step="100" value="1400">
+                    </div>
+                    <div class="control-item">
+                        <label for="animationType">动画效果</label>
+                        <select id="animationType">
+                            <option value="glow">金光闪耀</option>
+                            <option value="shake">天摇地动</option>
+                            <option value="rotate">乾坤旋转</option>
+                            <option value="combo">组合特效</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h4>🔮 随机性设置</h4>
+                    <div class="control-item">
+                        <label for="randomnessLevel">随机强度</label>
+                        <input type="range" id="randomnessLevel" min="1" max="10" step="1" value="5">
+                        <span id="randomnessLevelValue">5级(量子级)</span>
+                    </div>
+                    <div class="control-item">
+                        <label for="antiRepeat">防重复机制</label>
+                        <select id="antiRepeat">
+                            <option value="normal">普通(8次内不重复)</option>
+                            <option value="strict">严格(34次内不重复)</option>
+                            <option value="none">无(完全随机)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h4>📊 显示设置</h4>
+                    <div class="control-item">
+                        <label for="resultSize">结果显示大小</label>
+                        <input type="range" id="resultSize" min="3" max="10" step="0.5" value="6">
+                        <span id="resultSizeValue">6rem</span>
+                    </div>
+                    <div class="control-item">
+                        <label for="colorScheme">色彩方案</label>
+                        <select id="colorScheme">
+                            <option value="gold">黄金至尊</option>
+                            <option value="silver">白银贵族</option>
+                            <option value="jade">翡翠琉璃</option>
+                            <option value="ruby">红宝石</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h4>📜 加载文本设置</h4>
+                    <div class="load-text-editor">
+                        <div id="loadTextList">
+                            <!-- 动态加载文本项 -->
+                        </div>
+                        <button class="admin-btn" onclick="addLoadText()">新增仙语</button>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h4>🎨 背景设置</h4>
+                    <div class="control-item">
+                        <label>背景类型</label>
+                        <select id="bgType" onchange="toggleBackground()">
+                            <option value="image">天宫背景</option>
+                            <option value="color">纯金圣光</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h4>⏳ 加载时行为</h4>
+                    <div class="control-item">
+                        <label>
+                            <input type="checkbox" id="disableButtonCheck" checked> 
+                            加载时禁用按钮
+                        </label>
+                    </div>
+                    <div class="control-item">
+                        <label>
+                            <input type="checkbox" id="speechCheck"> 
+                            语音播报结果
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="admin-btn success" onclick="saveSettings()">保存天规（必点！）</button>
+                <button class="admin-btn" onclick="resetSettings()">重置天规</button>
+                <button class="admin-btn royal-effect" onclick="document.getElementById('rechargeModal').style.display='block'">
+                    充值功德
+                </button>
+            </div>
+        </div>
+        
+        <div class="admin-section">
+            <h2>📅 点名历史记录</h2>
+            <div style="max-height: 300px; overflow-y: auto; border: 1px solid rgba(255,215,0,0.3); border-radius: 10px;">
+                <div id="historyList">
+                    <!-- 历史记录将通过JavaScript动态填充 -->
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="admin-btn" onclick="clearHistory()">清空历史</button>
+                <button class="admin-btn" onclick="exportHistory()">导出历史</button>
+            </div>
+        </div>
+
+        <!-- 新增功能介绍模态框移到天机阁内 -->
+        <div class="admin-section">
+            <h2>✨天道运行原理白皮书✨ 
+                <button class="admin-btn" onclick="toggleWhitePaper()" style="margin-left:20px;padding:8px 15px">
+                    展开天机
+                </button>
+            </h2>
+            <div id="whitePaperContent" style="max-height:200px; overflow-y: auto; transition: all 0.3s ease;">
+                <div class="info-section">
+                    <h2>第一章：混沌初开-系统总纲</h2>
+                    <p>本系统乃融合三界六道之精华，集量子力学、易经八卦、混沌数学于一体。核心算法经九重天雷淬炼，获ISO 9999-天庭认证。其随机性可达普朗克尺度精度，公平性经十万佛陀共同见证...</p>
+                    
+                    <h3>1.1 宇宙本源随机源</h3>
+                    <p>采用银河系中心黑洞霍金辐射量子波动为熵源，通过量子纠缠通道实时获取真随机数。每个随机数生成时都会引发：</p>
+                    <ul>
+                        <li>三次超新星爆发提供能量</li>
+                        <li>七个平行宇宙同步验证</li>
+                        <li>十二维空间拓扑结构重组</li>
+                    </ul>
+
+                    <h3>1.2 九霄云外洗牌算法</h3>
+                    <p>改良自上古洪荒Fisher-Yates算法，增加：</p>
+                    <ul>
+                        <li>大罗金仙级空间折叠技术</li>
+                        <li>周天星辰大阵定位系统</li>
+                        <li>混沌青莲本源加密</li>
+                    </ul>
+                    <p>每次洗牌都会产生10^256种可能性，相当于重新排列整个可观测宇宙的所有原子...</p>
+                </div>
+
+                <div class="info-section">
+                    <h2>第二章：六道轮回-公平保障</h2>
+                    <p>本系统采用三生三世因果平衡机制：</p>
+                    <ul>
+                        <li>前世功德值加权计算</li>
+                        <li>今生课堂表现动态调整</li>
+                        <li>来世因果概率补偿</li>
+                    </ul>
+                    
+                    <h3>2.1 量子纠缠防重复系统</h3>
+                    <p>通过量子隐形传态技术，在45次点名周期内：</p>
+                    <ul>
+                        <li>每个灵魂必须经历一次轮回</li>
+                        <li>八次点名内不会重复现世</li>
+                        <li>因果律武器自动修正偏差</li>
+                    </ul>
+
+                    <h3>2.2 三十三重天验证体系</h3>
+                    <p>每轮结果需经过：</p>
+                    <ul>
+                        <li>南天门初级审核</li>
+                        <li>凌霄宝殿二次验证</li>
+                        <li>兜率宫最终确认</li>
+                    </ul>
+                    <p>任何人为干预都会触发诛仙剑阵自动防御...</p>
+                </div>
+
+                <div class="info-section">
+                    <h2>第三章：万法归宗-技术细节</h2>
+                    <p>底层代码采用女娲补天石铭刻，关键算法包括：</p>
+                    <ul>
+                        <li>大衍五十遁去其一算法</li>
+                        <li>河图洛书分布式验证</li>
+                        <li>紫微斗数时空定位</li>
+                    </ul>
+
+                    <h3>3.1 天道循环防御机制</h3>
+                    <p>系统每秒进行：</p>
+                    <ul>
+                        <li>十二万九千六百次自检（合一元之数）</li>
+                        <li>三十六天罡星加密校验</li>
+                        <li>七十二地煞星异常监测</li>
+                    </ul>
+
+                    <h3>3.2 混元无极容错系统</h3>
+                    <p>即使遭遇：</p>
+                    <ul>
+                        <li>三灾九难</li>
+                        <li>无量量劫</li>
+                        <li>末法时代</li>
+                    </ul>
+                    <p>系统仍可通过混沌备份自动恢复，保障亿万年稳定运行...</p>
+                </div>
+
+                <!-- 此处实际应展开数万字内容，因空间限制展示部分 -->
+                <div class="info-section">
+                    <h2>......（后续章节共999卷，含天机不可泄露之内容）......</h2>
+                    <p>最终解释权归恺恺老（阿）公组联合委员会所有</p>
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 40px;">
+            <!-- 原关闭按钮可移除 -->
+        </div>
+    </div>
+
+    <!-- 密码输入模态框 -->
+    <div id="passwordModal" class="password-modal">
+        <h2>🔐 天机阁入口</h2>
+        <p>请输入天道密码以进入天机阁：</p>
+        <input type="password" class="password-input" id="adminPassword" placeholder="输入天道密码...（提示：随便猜）" onkeydown="handlePasswordKeydown(event)">
+        <div class="password-buttons">
+            <button class="admin-btn" onclick="checkPassword()">验证</button>
+            <button class="admin-btn danger" onclick="closePasswordModal()">取消</button>
+        </div>
+    </div>
+
+    <!-- 充值界面 -->
+    <div id="rechargeModal" class="password-modal" style="width:600px; display: none;">
+        <h2>💰 天道充值系统</h2>
+        <div class="recharge-grid">
+            <button class="admin-btn" onclick="selectAmount(6)">6元神光</button>
+            <button class="admin-btn" onclick="selectAmount(30)">30元仙气</button>
+            <button class="admin-btn" onclick="selectAmount(68)">68元金身</button>
+            <button class="admin-btn" onclick="selectAmount(128)">128元神格</button>
+            <button class="admin-btn" onclick="selectAmount(328)">328元圣体</button>
+            <button class="admin-btn" onclick="selectAmount(648)">648元道果</button>
+            <button class="admin-btn danger" onclick="selectAmount(1988)">1988元神位</button>
+            <button class="admin-btn danger" onclick="selectAmount(8888)">8888元天道</button>
+        </div>
+        <div class="control-item" style="margin:20px 0;">
+            <label>支付方式：</label>
+            <select id="payMethod" style="width:200px;">
+                <option value="tian">天庭宝</option>
+                <option value="jiang">江南银行卡</option>
+            </select>
+        </div>
+        <div class="password-buttons">
+            <button class="admin-btn success" onclick="confirmPayment()">立即支付</button>
+            <button class="admin-btn danger" onclick="closeRecharge()">放弃修仙</button>
+        </div>
+    </div>
+
+    <!-- 新增分身设置模态框 -->
+    <div id="cloneModal" class="password-modal" style="width:500px; display: none;">
+        <h2>🔄 设置分身数量</h2>
+        <p>当前设置：<span id="cloneStudentName"></span></p>
+        <input type="number" class="password-input" id="cloneCountInput" 
+               placeholder="输入分身数量 (0-500)" min="0" max="500">
+        <div class="password-buttons">
+            <button class="admin-btn" onclick="confirmClone()">确认</button>
+            <button class="admin-btn danger" onclick="closeCloneModal()">取消</button>
+        </div>
+        <div style="color:#ffd700; margin-top:15px;">
+            <p>★ 分身系统经过999年调试  目前已生效！</p>
+            <p>★ 建议设置范围：1-10</p>
+            <p>★ 最大值限制：500个分身</p>
+        </div>
+    </div>
+
+    <script>
+        // 名单 修改者天打雷劈 丧失生育能力
+        const students = [
+            '曹烨霖', '杜泽晟', '刘品吉', '濮振轩', '钱宥恺', 
+            '沈家震', '殳康毅', '孙霖枫', '万宇峰', '温浩宇', 
+            '翁皓阳', '徐家乐', '颜语阳', '杨益嘉', '袁逸成', 
+            '张瑞煦', '郑齐跃', '傅沐岚', '胡歆由', '马曦媛', 
+            '沈芳伊', '宋和容', '孙露', '谈珂岑', '王念涵', 
+            '王译苓', '吴星月', '杨轶晓', '张敉荔', '张序', 
+            '赵聿心', '周湛宜', '朱珂莹', '李昱莹'
+        ];
+
+        // 学生详细信息
+        let studentDetails = students.map((name, index) => ({
+            id: index + 1,
+            name: name,
+            timesCalled: 0,
+            lastCalled: null,
+            cloneCount: 0  // 将 customProbability 改为 cloneCount
+        }));
+
+        // 总点名次数
+        let totalCalls = 0;
+
+        // 系统启动时间
+        const systemStartTime = new Date();
+
+        // 点名历史记录
+        let callHistory = [];
+
+        // 系统设置，修改默认密码
+        let systemSettings = {
+            loadingTime: 1400,
+            animationType: 'glow',
+            randomnessLevel: 5,
+            antiRepeat: 'normal',
+            resultSize: 6,
+            colorScheme: 'gold',
+            adminPasswords: ['3335', 'jnedu', '12345', '123456', '123', '888', '999', 
+                           '888888', '999999', '190403', '1026', '1218', '1234', 
+                           'qwerty', 'qwert12345', '78', 'dick', 'egg', 'eggy'],
+            bgType: 'image',
+            customLoadTexts: [
+                "玉皇神识正扫描三界...锁定目标仙缘中...",
+                "灵霄殿仙光接引中...即将揭晓天选之人",
+                "查阅生死簿特别篇...筛选今日应劫者",
+                "千里眼顺风耳协同定位...目标即将显形",
+                "九重天正在掷乾坤卦...卦象指向中...",
+                "三十三重天梯认证中...紫微星已亮起",
+                "天道轮回系统运转...功德金光正在聚焦"
+            ],
+            disableButtonDuringLoading: true, // 新增加载时禁用按钮设置
+            speechEnabled: false            // 新增语音播报设置
+        };
+
+        // 加载文本
+        const loadingTexts = systemSettings.customLoadTexts;
+        
+        // 历史记录
+        let selectionHistory = [];
+        let recentSelections = [];
+        let HISTORY_LIMIT = 8;
+        const FULL_CYCLE = 34;
+        let currentAmount = 0;
+        let currentEditingStudent = null;
+
+        // 新增保护机制相关变量
+        let cycleCounter = 0; // 50次周期计数器
+        let uncoveredStudents = new Set(students); // 未覆盖学生集合
+        const MAX_CLONES_FOR_PROTECTION = 10; // 保护机制失效阈值
+        const CYCLE_LIMIT = 50; // 完整周期次数
+
+        // 处理密码输入框的按键事件
+        function handlePasswordKeydown(event) {
+            if (event.key === 'Enter') {
+                checkPassword();
+            }
+        }
+
+        // 检查密码
+        function checkPassword() {
+            const password = document.getElementById('adminPassword').value;
+            if (systemSettings.adminPasswords.includes(password)) {
+                closePasswordModal();
+                showAdminPanel();
+            } else {
+                alert('密码错误！天道不可轻窥！');
+                document.getElementById('adminPassword').value = '';
+                document.getElementById('adminPassword').focus();
+            }
+        }
+
+        // 使用加密级别的随机数生成器
+        function getCryptoRandom() {
+            const buffer = new Uint32Array(1);
+            window.crypto.getRandomValues(buffer);
+            return buffer[0] / (0xFFFFFFFF + 1);
+        }
+        
+        // Fisher-Yates洗牌算法
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(getCryptoRandom() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+        
+        // 创建分组轮转系统
+        function createRotationGroups() {
+            const shuffled = shuffleArray(students);
+            const groupSize = Math.floor(Math.random() * 3) + 4;
+            const groups = [];
+            
+            for (let i = 0; i < shuffled.length; i += groupSize) {
+                groups.push(shuffled.slice(i, i + groupSize));
+            }
+            
+            return groups;
+        }
+
+        // 判断学生是否受保护
+        function shouldProtect(student) {
+            return student.cloneCount <= MAX_CLONES_FOR_PROTECTION;
+        }
+
+        // 构建候选池
+        function buildCandidatePool() {
+            const totalClones = studentDetails.reduce((sum, s) => sum + s.cloneCount, 0);
+            let candidates = [];
+            
+            studentDetails.forEach(student => {
+                // 判断是否受保护
+                const isProtected = shouldProtect(student);
+                
+                // 受保护且最近被点过则跳过
+                if (isProtected && recentSelections.includes(student.name)) return;
+                
+                // 添加克隆次数（至少1次）
+                const cloneTimes = Math.max(student.cloneCount, 1);
+                candidates.push(...Array(cloneTimes).fill(student.name));
+            });
+
+            // 强制覆盖机制（总克隆数<=30且存在未覆盖学生时生效）
+            if (totalClones <= 30 && uncoveredStudents.size > 0) {
+                return Array.from(uncoveredStudents).flatMap(name => {
+                    const s = studentDetails.find(s => s.name === name);
+                    return Array(Math.max(s.cloneCount, 1)).fill(name);
+                });
+            }
+            
+            return candidates.length > 0 ? candidates : [...students]; 
+        }
+        
+        // 选择学生的高级算法
+        function selectStudent() {
+            const totalClones = studentDetails.reduce((sum, s) => sum + s.cloneCount, 0);
+            let selectedStudent;
+            
+            // 构建候选池
+            let candidates = buildCandidatePool();
+            
+            // 随机选择
+            if (candidates.length > 0) {
+                selectedStudent = candidates[Math.floor(getCryptoRandom() * candidates.length)];
+            } else {
+                selectedStudent = students[Math.floor(getCryptoRandom() * students.length)];
+            }
+
+            // 周期计数器更新
+            cycleCounter = (cycleCounter + 1) % CYCLE_LIMIT;
+            if (cycleCounter === 0 && totalClones <= 30) {
+                uncoveredStudents = new Set(students);
+            }
+
+            // 更新未覆盖名单
+            if (uncoveredStudents.has(selectedStudent)) {
+                uncoveredStudents.delete(selectedStudent);
+            }
+
+            // 更新最近选择（仅对受保护学生生效）
+            const student = studentDetails.find(s => s.name === selectedStudent);
+            if (shouldProtect(student)) {
+                recentSelections.push(selectedStudent);
+                if (recentSelections.length > 8) recentSelections.shift();
+            }
+
+            // 更新学生数据
+            const studentIndex = studentDetails.findIndex(s => s.name === selectedStudent);
+            if (studentIndex !== -1) {
+                studentDetails[studentIndex].timesCalled++;
+                studentDetails[studentIndex].lastCalled = new Date();
+            }
+            
+            // 更新总点名次数
+            totalCalls++;
+            
+            // 添加到历史记录
+            callHistory.unshift({
+                name: selectedStudent,
+                time: new Date(),
+                type: '点名'
+            });
+            
+            // 更新UI
+            updateAdminStats();
+            updateStudentTable();
+            updateHistoryList();
+            
+            return selectedStudent;
+        }
+        
+        // 随机选择加载文本
+        function selectRandomLoadingText() {
+            const texts = systemSettings.customLoadTexts;
+            return texts[Math.floor(getCryptoRandom() * texts.length)];
+        }
+        
+        // 显示加载动画
+        function showLoading() {
+            if (systemSettings.disableButtonDuringLoading) {
+                document.getElementById('randomBtn').disabled = true;
+            }
+            const loadingElement = document.getElementById('loadingText');
+            loadingElement.textContent = selectRandomLoadingText();
+            loadingElement.classList.add('show');
+            
+            setTimeout(() => {
+                loadingElement.classList.remove('show');
+                setTimeout(() => {
+                    const selectedStudent = selectStudent();
+                    showResult(selectedStudent);
+                    if (systemSettings.disableButtonDuringLoading) {
+                        document.getElementById('randomBtn').disabled = false;
+                    }
+                }, 300);
+            }, systemSettings.loadingTime);
+        }
+        
+        // 显示结果，移除多余样式，优化色彩方案
+        function showResult(name) {
+            const resultElement = document.getElementById('result');
+            resultElement.textContent = name;
+            resultElement.style.fontSize = `${systemSettings.resultSize}rem`;
+            
+            // 固定使用默认动画效果
+            resultElement.className = 'result show glow';
+
+            const colorSchemes = {
+                gold: { 
+                    main: '#ffd700', 
+                    secondary: '#ff0000',
+                    textShadow: `0 0 10px #ffd700, 0 0 20px #ffd700, 0 0 30px #ffd700,
+                        3px 3px 0 #ff0000, -3px -3px 0 #ff0000, 3px -3px 0 #ff0000, -3px 3px 0 #ff0000`
+                },
+                silver: { 
+                    main: '#e0e0e0', 
+                    secondary: '#808080',
+                    textShadow: `0 0 10px #ffffff, 0 0 20px #c0c0c0, 0 0 30px #a0a0a0,
+                        2px 2px 0 #606060, -2px -2px 0 #606060, 2px -2px 0 #606060, -2px 2px 0 #606060`
+                },
+                jade: { 
+                    main: '#00ff9d', 
+                    secondary: '#006b47',
+                    textShadow: `0 0 10px #00ff9d, 0 0 20px #00cc7d, 0 0 30px #00995c,
+                        2px 2px 0 #004d2e, -2px -2px 0 #004d2e, 2px -2px 0 #004d2e, -2px 2px 0 #004d2e`
+                },
+                ruby: { 
+                    main: '#ff0040', 
+                    secondary: '#800020',
+                    textShadow: `0 0 10px #ff0040, 0 0 20px #cc0033, 0 0 30px #990026,
+                        2px 2px 0 #4d0013, -2px -2px 0 #4d0013, 2px -2px 0 #4d0013, -2px 2px 0 #4d0013`
+                }
+            };
+            const colors = colorSchemes[systemSettings.colorScheme];
+            resultElement.style.color = colors.main;
+            resultElement.style.textShadow = colors.textShadow;
+
+            if (systemSettings.speechEnabled) {
+                const speech = new SpeechSynthesisUtterance(`有请宇宙无敌${name}进行答题`);
+                speech.rate = 0.9;
+                speech.pitch = 1.2;
+                window.speechSynthesis.speak(speech);
+            }
+        }
+        
+        // 更新管理统计信息
+        function updateAdminStats() {
+            document.getElementById('totalCallsStat').textContent = totalCalls;
+            
+            // 计算运行时长
+            const uptime = Math.floor((new Date() - systemStartTime) / 1000);
+            const days = Math.floor(uptime / (3600 * 24));
+            const hours = Math.floor((uptime % (3600 * 24)) / 3600);
+            const minutes = Math.floor((uptime % 3600) / 60);
+            document.getElementById('uptimeStat').textContent = `${days}天${hours}时${minutes}分`;
+            
+            // 最近点名
+            if (callHistory.length > 0) {
+                const lastCall = callHistory[0];
+                const timeStr = lastCall.time.toLocaleTimeString();
+                document.getElementById('lastCalledStat').textContent = `${lastCall.name} (${timeStr})`;
+            }
+            
+            // 点名频率
+            if (totalCalls > 0 && uptime > 0) {
+                const rate = (totalCalls / (uptime / 60)).toFixed(2);
+                document.getElementById('callRateStat').textContent = `${rate}次/分`;
+            }
+
+            // 新增状态显示
+            const totalClones = studentDetails.reduce((sum, s) => sum + s.cloneCount, 0);
+            document.getElementById('cloneStatus').textContent = 
+                `分身总数：${totalClones}（${totalClones > 30 ? '50次机制已失效' : '50次机制生效中'}）`;
+            document.getElementById('uncoveredCount').textContent = 
+                `未覆盖人数：${uncoveredStudents.size}（周期剩余：${CYCLE_LIMIT - cycleCounter}次）`;
+        }
+        
+        // 更新学生表格
+        function updateStudentTable() {
+            const tableBody = document.getElementById('studentTable');
+            tableBody.innerHTML = '';
+            
+            studentDetails.forEach((student, index) => {
+                const row = document.createElement('tr');
+                
+                // 学号
+                const idCell = document.createElement('td');
+                idCell.textContent = student.id;
+                row.appendChild(idCell);
+                
+                // 姓名
+                const nameCell = document.createElement('td');
+                nameCell.textContent = student.name;
+                row.appendChild(nameCell);
+                
+                // 被点次数
+                const timesCell = document.createElement('td');
+                timesCell.textContent = student.timesCalled;
+                row.appendChild(timesCell);
+                
+                // 分身数量
+                const cloneCell = document.createElement('td');
+                cloneCell.innerHTML = `
+                    ${student.cloneCount}
+                    <button class="admin-btn" 
+                        onclick="showCloneModal(studentDetails[${index}])"
+                        style="padding:3px 8px; margin-left:8px">
+                        设置
+                    </button>
+                `;
+                row.appendChild(cloneCell);
+                
+                // 上次被点
+                const lastCell = document.createElement('td');
+                lastCell.textContent = student.lastCalled ? 
+                    student.lastCalled.toLocaleTimeString() : '从未';
+                row.appendChild(lastCell);
+                
+                // 操作
+                const actionCell = document.createElement('td');
+                const resetBtn = document.createElement('button');
+                resetBtn.textContent = '重置';
+                resetBtn.className = 'admin-btn';
+                resetBtn.style.padding = '5px 10px';
+                resetBtn.style.fontSize = '0.9rem';
+                resetBtn.onclick = () => {
+                    student.timesCalled = 0;
+                    student.lastCalled = null;
+                    student.cloneCount = 0;
+                    updateStudentTable();
+                };
+                actionCell.appendChild(resetBtn);
+                row.appendChild(actionCell);
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // 更新历史记录列表
+        function updateHistoryList() {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+            
+            callHistory.slice(0, 50).forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                const timeSpan = document.createElement('div');
+                timeSpan.className = 'history-time';
+                timeSpan.textContent = item.time.toLocaleString();
+                
+                const nameSpan = document.createElement('div');
+                nameSpan.className = 'history-name';
+                nameSpan.textContent = `${item.type}: ${item.name}`;
+                
+                historyItem.appendChild(timeSpan);
+                historyItem.appendChild(nameSpan);
+                historyList.appendChild(historyItem);
+            });
+        }
+        
+        // 重置所有计数
+        function resetAllCounts() {
+            if (confirm('确定要重置所有学生的被点次数和分身数量吗？此操作不可撤销！')) {
+                studentDetails.forEach(student => {
+                    student.timesCalled = 0;
+                    student.lastCalled = null;
+                    student.cloneCount = 0;
+                });
+                totalCalls = 0;
+                callHistory = [];
+                selectionHistory = [];
+                recentSelections = [];
+                cycleCounter = 0;
+                uncoveredStudents = new Set(students);
+                updateAdminStats();
+                updateStudentTable();
+                updateHistoryList();
+            }
+        }
+        
+        // 保存设置
+        function saveSettings() {
+            systemSettings.loadingTime = parseInt(document.getElementById('loadingTime').value);
+            systemSettings.animationType = document.getElementById('animationType').value;
+            systemSettings.randomnessLevel = parseInt(document.getElementById('randomnessLevel').value);
+            systemSettings.antiRepeat = document.getElementById('antiRepeat').value;
+            systemSettings.resultSize = parseFloat(document.getElementById('resultSize').value);
+            systemSettings.colorScheme = document.getElementById('colorScheme').value;
+            systemSettings.bgType = document.getElementById('bgType').value;
+            systemSettings.disableButtonDuringLoading = document.getElementById('disableButtonCheck').checked;
+            systemSettings.speechEnabled = document.getElementById('speechCheck').checked;
+
+            // 保存加载文本
+            systemSettings.customLoadTexts = Array.from(document.querySelectorAll('.load-text-item'))
+                .map(item => item.value)
+                .filter(text => text.trim() !== '');
+            
+            // 更新UI显示
+            document.getElementById('loadingTimeValue').value = systemSettings.loadingTime;
+            document.getElementById('randomnessLevelValue').textContent = `${systemSettings.randomnessLevel}级(${
+                systemSettings.randomnessLevel >= 8 ? '量子级' : 
+                systemSettings.randomnessLevel >= 5 ? '高级' : '普通'
+            })`;
+            document.getElementById('resultSizeValue').textContent = `${systemSettings.resultSize}rem`;
+
+            // 应用背景设置
+            document.body.classList.toggle('gold-bg', systemSettings.bgType === 'color');
+            
+            alert('天规已保存！');
+        }
+        
+        // 重置设置
+        function resetSettings() {
+            if (confirm('确定要重置所有系统设置为默认值吗？')) {
+                systemSettings = {
+                    loadingTime: 1400,
+                    animationType: 'glow',
+                    randomnessLevel: 5,
+                    antiRepeat: 'normal',
+                    resultSize: 6,
+                    colorScheme: 'gold',
+                    adminPasswords: ['3335', 'jnedu', '12345', '123456', '123', '888', '999', 
+                                   '888888', '999999', '190403', '1026', '1218', '1234', 
+                                   'qwerty', 'qwert12345', '78', 'dick', 'egg', 'eggy'],
+                    bgType: 'image',
+                    customLoadTexts: [
+                        "玉皇神识正扫描三界...锁定目标仙缘中...",
+                        "灵霄殿仙光接引中...即将揭晓天选之人",
+                        "查阅生死簿特别篇...筛选今日应劫者",
+                        "千里眼顺风耳协同定位...目标即将显形",
+                        "九重天正在掷乾坤卦...卦象指向中...",
+                        "三十三重天梯认证中...紫微星已亮起",
+                        "天道轮回系统运转...功德金光正在聚焦"
+                    ],
+                    disableButtonDuringLoading: true,
+                    speechEnabled: false
+                };
+                
+                // 更新UI控件
+                document.getElementById('loadingTime').value = systemSettings.loadingTime;
+                document.getElementById('loadingTimeValue').value = systemSettings.loadingTime;
+                document.getElementById('animationType').value = systemSettings.animationType;
+                document.getElementById('randomnessLevel').value = systemSettings.randomnessLevel;
+                document.getElementById('randomnessLevelValue').textContent = '5级(量子级)';
+                document.getElementById('antiRepeat').value = systemSettings.antiRepeat;
+                document.getElementById('resultSize').value = systemSettings.resultSize;
+                document.getElementById('resultSizeValue').textContent = '6rem';
+                document.getElementById('colorScheme').value = systemSettings.colorScheme;
+                document.getElementById('bgType').value = systemSettings.bgType;
+                document.getElementById('disableButtonCheck').checked = systemSettings.disableButtonDuringLoading;
+                document.getElementById('speechCheck').checked = systemSettings.speechEnabled;
+
+                // 初始化加载文本
+                const loadTextList = document.getElementById('loadTextList');
+                loadTextList.innerHTML = '';
+                systemSettings.customLoadTexts.forEach(text => {
+                    const div = document.createElement('div');
+                    div.className = 'control-item';
+                    div.innerHTML = `
+                        <input type="text" class="load-text-item" 
+                            value="${text}" 
+                            style="width:calc(100% - 30px)">
+                        <button class="admin-btn danger" 
+                            onclick="this.parentElement.remove()" 
+                            style="width:25px;padding:5px">×</button>
+                    `;
+                    loadTextList.appendChild(div);
+                });
+                
+                // 应用背景设置
+                document.body.classList.toggle('gold-bg', systemSettings.bgType === 'color');
+                
+                alert('天规已重置为默认值！');
+            }
+        }
+        
+        // 清空历史
+        function clearHistory() {
+            if (confirm('确定要清空所有点名历史记录吗？此操作不可撤销！')) {
+                callHistory = [];
+                updateHistoryList();
+            }
+        }
+        
+        // 导出数据
+        function exportData() {
+            const data = {
+                students: studentDetails,
+                totalCalls: totalCalls,
+                settings: systemSettings,
+                callHistory: callHistory,
+                version: '1.0',
+                exportTime: new Date()
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `天机备份_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // 导入数据
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = e => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = event => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        
+                        if (confirm(`确定要导入备份数据吗？这将覆盖当前所有数据！\n备份时间: ${new Date(data.exportTime).toLocaleString()}`)) {
+                            if (data.students) studentDetails = data.students;
+                            if (data.totalCalls) totalCalls = data.totalCalls;
+                            if (data.settings) systemSettings = data.settings;
+                            if (data.callHistory) callHistory = data.callHistory;
+                            
+                            // 更新UI
+                            updateAdminStats();
+                            updateStudentTable();
+                            updateHistoryList();
+                            
+                            // 更新UI控件
+                            document.getElementById('loadingTime').value = systemSettings.loadingTime;
+                            document.getElementById('loadingTimeValue').value = systemSettings.loadingTime;
+                            document.getElementById('animationType').value = systemSettings.animationType;
+                            document.getElementById('randomnessLevel').value = systemSettings.randomnessLevel;
+                            document.getElementById('randomnessLevelValue').textContent = `${systemSettings.randomnessLevel}级(${
+                                systemSettings.randomnessLevel >= 8 ? '量子级' : 
+                                systemSettings.randomnessLevel >= 5 ? '高级' : '普通'
+                            })`;
+                            document.getElementById('antiRepeat').value = systemSettings.antiRepeat;
+                            document.getElementById('resultSize').value = systemSettings.resultSize;
+                            document.getElementById('resultSizeValue').textContent = `${systemSettings.resultSize}rem`;
+                            document.getElementById('colorScheme').value = systemSettings.colorScheme;
+                            document.getElementById('bgType').value = systemSettings.bgType;
+                            document.getElementById('disableButtonCheck').checked = systemSettings.disableButtonDuringLoading;
+                            document.getElementById('speechCheck').checked = systemSettings.speechEnabled;
+
+                            // 初始化加载文本
+                            const loadTextList = document.getElementById('loadTextList');
+                            loadTextList.innerHTML = '';
+                            systemSettings.customLoadTexts.forEach(text => {
+                                const div = document.createElement('div');
+                                div.className = 'control-item';
+                                div.innerHTML = `
+                                    <input type="text" class="load-text-item" 
+                                        value="${text}" 
+                                        style="width:calc(100% - 30px)">
+                                    <button class="admin-btn danger" 
+                                        onclick="this.parentElement.remove()" 
+                                        style="width:25px;padding:5px">×</button>
+                                `;
+                                loadTextList.appendChild(div);
+                            });
+                            
+                            // 应用背景设置
+                            document.body.classList.toggle('gold-bg', systemSettings.bgType === 'color');
+                            
+                            alert('天机导入成功！');
+                        }
+                    } catch (err) {
+                        alert('导入失败：文件格式不正确！（其实不可能成功）');
+                        console.error(err);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+        
+        // 导出历史
+        function exportHistory() {
+            let historyText = '点名历史记录\n\n';
+            historyText += `导出时间: ${new Date().toLocaleString()}\n`;
+            historyText += `总点名次数: ${totalCalls}\n\n`;
+            
+            callHistory.forEach(item => {
+                historyText += `${item.time.toLocaleString()} - ${item.type}: ${item.name}\n`;
+            });
+            
+            const blob = new Blob([historyText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `点名历史_${new Date().toISOString().replace(/[:.]/g, '-')}_江南鸡蛋质检员.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // 显示密码输入框
+        function showPasswordModal() {
+            document.getElementById('passwordModal').style.display = 'block';
+            document.getElementById('adminPassword').focus();
+        }
+        
+        // 关闭密码输入框
+        function closePasswordModal() {
+            document.getElementById('passwordModal').style.display = 'none';
+            document.getElementById('adminPassword').value = '';
+        }
+        
+        // 显示管理面板
+        function showAdminPanel() {
+            updateAdminStats();
+            updateStudentTable();
+            updateHistoryList();
+            
+            // 初始化UI控件
+            document.getElementById('loadingTime').value = systemSettings.loadingTime;
+            document.getElementById('loadingTimeValue').value = systemSettings.loadingTime;
+            document.getElementById('animationType').value = systemSettings.animationType;
+            document.getElementById('randomnessLevel').value = systemSettings.randomnessLevel;
+            document.getElementById('randomnessLevelValue').textContent = `${systemSettings.randomnessLevel}级(${
+                systemSettings.randomnessLevel >= 8 ? '量子级' : 
+                systemSettings.randomnessLevel >= 5 ? '高级' : '普通'
+            })`;
+            document.getElementById('antiRepeat').value = systemSettings.antiRepeat;
+            document.getElementById('resultSize').value = systemSettings.resultSize;
+            document.getElementById('resultSizeValue').textContent = `${systemSettings.resultSize}rem`;
+            document.getElementById('colorScheme').value = systemSettings.colorScheme;
+            document.getElementById('bgType').value = systemSettings.bgType;
+            document.getElementById('disableButtonCheck').checked = systemSettings.disableButtonDuringLoading;
+            document.getElementById('speechCheck').checked = systemSettings.speechEnabled;
+
+            // 初始化加载文本
+            const loadTextList = document.getElementById('loadTextList');
+            loadTextList.innerHTML = '';
+            systemSettings.customLoadTexts.forEach(text => {
+                const div = document.createElement('div');
+                div.className = 'control-item';
+                div.innerHTML = `
+                    <input type="text" class="load-text-item" 
+                        value="${text}" 
+                        style="width:calc(100% - 30px)">
+                    <button class="admin-btn danger" 
+                        onclick="this.parentElement.remove()" 
+                        style="width:25px;padding:5px">×</button>
+                `;
+                loadTextList.appendChild(div);
+            });
+            
+            // 设置滑动条事件
+            document.getElementById('loadingTime').oninput = function() {
+                document.getElementById('loadingTimeValue').value = this.value;
+            };
+            document.getElementById('loadingTimeValue').oninput = function() {
+                document.getElementById('loadingTime').value = this.value;
+            };
+            
+            document.getElementById('randomnessLevel').oninput = function() {
+                const level = parseInt(this.value);
+                document.getElementById('randomnessLevelValue').textContent = `${level}级(${
+                    level >= 8 ? '量子级' : 
+                    level >= 5 ? '高级' : '普通'
+                })`;
+            };
+            
+            document.getElementById('resultSize').oninput = function() {
+                document.getElementById('resultSizeValue').textContent = `${this.value}rem`;
+            };
+            
+            document.getElementById('adminPanel').style.display = 'block';
+        }
+        
+        // 关闭管理面板
+        function closeAdminPanel() {
+            document.getElementById('adminPanel').style.display = 'none';
+        }
+        
+        // 禁止右键菜单
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        // 新增背景切换功能
+        function toggleBackground() {
+            systemSettings.bgType = document.getElementById('bgType').value;
+            document.body.classList.toggle('gold-bg', systemSettings.bgType === 'color');
+        }
+
+        // 加载文本管理功能
+        function addLoadText() {
+            const container = document.getElementById('loadTextList');
+            const div = document.createElement('div');
+            div.className = 'control-item';
+            div.innerHTML = `
+                <input type="text" class="load-text-item" 
+                    placeholder="输入新加载文本..." 
+                    style="width:calc(100% - 30px)">
+                <button class="admin-btn danger" 
+                    onclick="this.parentElement.remove()" 
+                    style="width:25px;padding:5px">×</button>
+            `;
+            container.appendChild(div);
+        }
+
+        // 充值相关函数
+        function selectAmount(amount) {
+            currentAmount = amount;
+            document.querySelectorAll('.recharge-grid button').forEach(btn => {
+                btn.classList.remove('royal-effect');
+            });
+            event.target.classList.add('royal-effect');
+        }
+
+        function confirmPayment() {
+            if (currentAmount === 0) return alert('请选择充值金额！');
+            const method = document.getElementById('payMethod').value;
+            if (confirm(`确定支付${currentAmount}元（${method === 'tian' ? '天庭宝' : '江南宝'}）吗？`)) {
+                alert(`支付成功！获得${currentAmount*1000}天道功德，位列仙班！`);
+                closeRecharge();
+            }
+        }
+
+        function closeRecharge() {
+            document.getElementById('rechargeModal').style.display = 'none';
+            currentAmount = 0;
+        }
+
+        // 白皮书展开/收起功能
+        let isWhitePaperExpanded = false;
+        function toggleWhitePaper() {
+            const content = document.getElementById('whitePaperContent');
+            const btn = document.querySelector('[onclick="toggleWhitePaper()"]');
+            if(isWhitePaperExpanded) {
+                content.style.maxHeight = '200px';
+                btn.innerHTML = '展开天机';
+            } else {
+                content.style.maxHeight = '1000px';
+                btn.innerHTML = '收起天机';
+            }
+            isWhitePaperExpanded = !isWhitePaperExpanded;
+        }
+
+        // 显示分身设置模态框
+        function showCloneModal(student) {
+            currentEditingStudent = student;
+            document.getElementById('cloneStudentName').textContent = student.name;
+            document.getElementById('cloneCountInput').value = student.cloneCount;
+            document.getElementById('cloneModal').style.display = 'block';
+        }
+
+        // 关闭分身设置模态框
+        function closeCloneModal() {
+            document.getElementById('cloneModal').style.display = 'none';
+            currentEditingStudent = null;
+        }
+
+        // 确认分身设置
+        function confirmClone() {
+            const value = parseInt(document.getElementById('cloneCountInput').value);
+            if (value >= 0 && value <= 500) {
+                currentEditingStudent.cloneCount = value;
+                
+                // 自动解除保护提示
+                if (value > MAX_CLONES_FOR_PROTECTION) {
+                    alert(`${currentEditingStudent.name}的分身超过${MAX_CLONES_FOR_PROTECTION}，保护机制已解除！`);
+                }
+                
+                updateStudentTable();
+                closeCloneModal();
+            } else {
+                alert('分身数量必须介于0-500之间！');
+            }
+        }
+        
+        // 初始化
+        function init() {
+            document.getElementById('randomBtn').addEventListener('click', () => {
+                const resultElement = document.getElementById('result');
+                resultElement.className = 'result';
+                showLoading();
+            });
+            
+            document.getElementById('adminBtn').addEventListener('click', showPasswordModal);
+            
+            // 初始化UI
+            updateAdminStats();
+            updateStudentTable();
+            updateHistoryList();
+
+            // 初始化加载文本
+            initLoadTexts();
+
+            // 应用背景设置
+            document.body.classList.toggle('gold-bg', systemSettings.bgType === 'color');
+        }
+
+        // 初始化加载文本
+        function initLoadTexts() {
+            const container = document.getElementById('loadTextList');
+            systemSettings.customLoadTexts.forEach(text => {
+                const div = document.createElement('div');
+                div.className = 'control-item';
+                div.innerHTML = `
+                    <input type="text" class="load-text-item" 
+                        value="${text}" 
+                        style="width:calc(100% - 30px)">
+                    <button class="admin-btn danger" 
+                        onclick="this.parentElement.remove()" 
+                        style="width:25px;padding:5px">×</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        // 启动应用
+        init();
+    </script>
+</body>
+</html>
